@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" rel="stylesheet"/>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+
+    <style type="text/css">
+    	.toast {
+		  opacity: 1 !important;
+		}
+
+		#toast-container > div {
+		  opacity: 1 !important; 
+		}
+
+		body {
+            background-image: url("stevescoolbg.jpg");
+            background-size: cover
+        }
+        
+        #terms {
+            
+        }
+    </style>
+
+    <title>Attractors & Voids</title>
+</head>
+
+<body>
+    <h2 style="color: white;">Apologies for the recent downtime. While the system transitions through some upgrades you can use the Attractor and Void buttons below to get a point.</h2>
+
+    <div style="background-color: black; color: white">
+    	<div id="terms">
+    		<p>Randonauting is a way to turn the world around you into an adventure. Stemming from research of The Fatum Project, this app was created to send a Randonaut outside of their day-to-day routine by using a quantum random number generator to derive a coordinate to journey to. Early results are showing there might be more to mind-matter interaction than we once knew.</p>
+    		<p>For now your search radius is fixed to 3km.</p>
+
+	    	<p>By using this app you must agree to the terms below.</p>
+	        <li>The app uses truly randomized coordinates. It is the user’s responsibility and wholly at their own risk should they decide to physically travel to coordinates in the real world.</li>
+	        <li>By using the app, you do so at your own risk. No-one other than yourself is liable for any positive or adverse affects or consequences from the use of this platform.</li>
+	        <li>Use common sense, do not put yourself or others in harm's way. Don't trespass. Obey all quarantine, curfew and social distancing regulations in your area.</li>
+	        <li>Don't steal, don't damage property, don't litter, don't do anything illegal nor anything that would otherwise cause danger to yourself or others.</li>
+	        <li>All your data is anonymized.</li>
+	        <li>Nothing is shared with any third party services, period.</li>
+
+	        <center><p><input id="agree" type="checkbox">Agree</p></center>
+	    </div>
+
+		<center>
+
+			<div id="finding" style="display: none;">Finding a location... focus on your intent. Please wait.</div>
+
+		    <div id="results" style="display: none;">
+		    	Intention Driven Anomaly found<br>
+		    	<div id="type"></div>
+		        <div id="power"></div>
+		        <div id="zscore"></div>
+		        <div id="radius"></div>
+		        <a id="gmaps" target="_blank" rel="noopener noreferrer"></a>
+		    </div>
+        
+            <div id="buttons">
+            	<br>
+            	Attractors are dense clusters of random points. Voids are the opposite.<br><br>
+	        	<button onclick="getPoint(1)">Get Attractor</button>
+	    		<button onclick="getPoint(2)">Get Void</button>
+	    	</div>
+    	</center>
+
+    	<div id="reload">
+    		<br>
+    		<button onclick="location.reload();">Reload</button>
+    	</div>
+    </div>
+  
+    <script>
+        function getPoint(pointType) {
+        	var c = document.getElementById('agree');
+            if (c.checked == false) {
+                toastr.error('Please agree to the terms first')
+                return true
+            }
+
+            if (navigator.geolocation) {
+            	function reset(msg) {
+            		toastr.error(msg);
+				    $('#finding').hide();
+				    $('#results').hide();
+				    $('#buttons').show();
+            	}
+
+				$('#terms').hide();
+				$('#results').hide();
+	            $('#buttons').hide();
+	            $('#finding').show();
+
+                navigator.geolocation.getCurrentPosition(
+			        function (location) {
+			            $.ajax({
+					        url: "https://qrng.anu.edu.au/API/jsonI.php?length=500&type=hex16&size=520",
+					        type: "GET",
+					        success: function(result) {
+					        	var hex = "";
+					        	for (var i = 0; i < result.data.length; i++) {
+					        		hex += result.data[i];
+					        	}
+					        	var bytes = [];
+								for (var i = 0, len = hex.length; i < len; i+=2) {
+									bytes.push(parseInt(hex.substr(i,2),16));
+								}
+								var bytesArray = new Uint8Array(bytes);
+
+					            $.ajax({
+							        url: "https://gosteve.azurewebsites.net/api/attractors?t="+pointType+"&l1="+location.coords.latitude+"&l2="+location.coords.longitude,
+							        type: "POST",
+							        contentType: "application/octet-stream",
+							        timeout: 120000,
+							        processData: false,
+							        data: bytesArray,
+							        success: function(result) {
+
+							        	$('#finding').hide();
+										$('#results').show();
+										$('#buttons').show();
+
+										result = JSON.parse(result);
+										$('#type').text("Type: " + (pointType == 1 ? "Attractor" : "Void"));
+										$('#power').text("Power: " + result.p);
+										$('#zscore').text("Z-score: " + result.z);
+										$('#radius').text("Radius (m): " + result.r);
+
+							            $("#gmaps").text("Open in Google Maps");
+							            $("#gmaps").attr("href", "https://www.google.com/maps?q=" + result.l1 + "," + result.l2);
+							        },
+							        error: function(XMLHttpRequest, textStatus, errorThrown) {
+							        	reset("Unable to currently find any points of interest. Try again.")
+							        }
+						        });
+							},
+					        error: function(XMLHttpRequest, textStatus, errorThrown) {
+					        	toastr.error("Error getting entropy. Try again later.")
+						    }
+					    });
+			        },
+			        function error(err) {
+			            reset('Error getting your current location')
+			        },
+			        {
+			            "enableHighAccuracy": true,
+			            "timeout": 8000,
+			            "maximumAge": 5000,
+			        }
+		        );
+            } else {
+                toastr.error('Your device doesn\'t support GPS');
+            }
+        }
+    </script>
+</body>
+
+</html>
