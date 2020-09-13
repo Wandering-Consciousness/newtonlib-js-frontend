@@ -138,14 +138,21 @@
 										$('#results').show();
 										$('#buttons').show();
 
-										result = JSON.parse(result);
-										$('#type').text("Type: " + (pointType == 1 ? "Attractor" : "Void"));
-										$('#power').text("Power: " + result.p);
-										$('#zscore').text("Z-score: " + result.z);
-										$('#radius').text("Radius (m): " + result.r);
+										try {
+											result = JSON.parse(result);
+											$('#type').text("Type: " + (pointType == 1 ? "Attractor" : "Void"));
+											$('#power').text("Power: " + result.p);
+											$('#zscore').text("Z-score: " + result.z);
+											$('#radius').text("Radius (m): " + result.r);
 
-							            $("#gmaps").text("Open in Google Maps");
-							            $("#gmaps").attr("href", "https://www.google.com/maps?q=" + result.l1 + "," + result.l2);
+								            $("#gmaps").text("Open Map");
+								            $("#gmaps").attr("href", "https://www.google.com/maps/place/" + result.l1 + "," + result.l2 + "/@" +  result.l1 + "," + result.l2 + ",14z");
+								        } catch (e) {
+								        	reset("Error with point data. Try again.");
+								        	console.log("Error", e.stack);
+										    console.log("Error", e.name);
+										    console.log("Error", e.message);
+								        }
 							        },
 							        error: function(XMLHttpRequest, textStatus, errorThrown) {
 							        	reset("Unable to currently find any points of interest. Try again.")
