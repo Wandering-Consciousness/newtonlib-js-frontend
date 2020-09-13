@@ -77,8 +77,8 @@
             <div id="buttons">
             	<br>
             	Attractors are dense clusters of random points. Voids are the opposite.<br><br>
-	        	<button onclick="getPoint(1)">Get Attractor</button>
-	    		<button onclick="getPoint(2)">Get Void</button>
+	        	<button onclick="gp(1)">Get Attractor</button>
+	    		<button onclick="gp(2)">Get Void</button>
 	    	</div>
     	</center>
 
@@ -89,7 +89,7 @@
     </div>
   
     <script>
-        function getPoint(pointType) {
+        function gp(pointType) {
         	var c = document.getElementById('agree');
             if (c.checked == false) {
                 toastr.error('Please agree to the terms first')
