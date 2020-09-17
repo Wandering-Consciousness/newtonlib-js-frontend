@@ -46,21 +46,6 @@
     <h2 style="color: white;">Apologies for the recent downtime. While the system transitions through some upgrades you can use the Attractor and Void buttons below to get a point.</h2>
 
     <div style="background-color: black; color: white">
-    	<div id="terms">
-    		<p>Randonauting is a way to turn the world around you into an adventure. Stemming from research of The Fatum Project, this app was created to send a Randonaut outside of their day-to-day routine by using a quantum random number generator to derive a coordinate to journey to. Early results are showing there might be more to mind-matter interaction than we once knew.</p>
-    		<p>For now your search radius is fixed to 3km.</p>
-
-	    	<p>By using this app you must agree to the terms below.</p>
-	        <li>The app uses truly randomized coordinates. It is the user’s responsibility and wholly at their own risk should they decide to physically travel to coordinates in the real world.</li>
-	        <li>By using the app, you do so at your own risk. No-one other than yourself is liable for any positive or adverse affects or consequences from the use of this platform.</li>
-	        <li>Use common sense, do not put yourself or others in harm's way. Don't trespass. Obey all quarantine, curfew and social distancing regulations in your area.</li>
-	        <li>Don't steal, don't damage property, don't litter, don't do anything illegal nor anything that would otherwise cause danger to yourself or others.</li>
-	        <li>All your data is anonymized.</li>
-	        <li>Nothing is shared with any third party services, period.</li>
-
-	        <center><p><input id="agree" type="checkbox">Agree</p></center>
-	    </div>
-
 		<center>
 
 			<div id="finding" style="display: none;">Finding a location... focus on your intent. Please wait.</div>
@@ -76,11 +61,36 @@
         
             <div id="buttons">
             	<br>
-            	Attractors are dense clusters of random points. Voids are the opposite.<br><br>
+            	Attractors are dense clusters of random points. Voids are the opposite. For now your search radius is fixed to 3km.<br><br>
 	        	<button onclick="gp(1)">Get Attractor</button>
 	    		<button onclick="gp(2)">Get Void</button>
 	    	</div>
     	</center>
+
+    	<div id="terms">
+	    	<p>By using this app you must agree to the terms below.</p>
+	        <center><p><input id="agree" type="checkbox">Agree</p></center>
+
+	        <li>The app uses truly randomized coordinates. It is the user’s responsibility and wholly at their own risk should they decide to physically travel to coordinates in the real world.</li>
+	        <li>By using the app, you do so at your own risk. No-one other than yourself is liable for any positive or adverse affects or consequences from the use of this platform.</li>
+	        <li>Use common sense, do not put yourself or others in harm's way. Don't trespass. Obey all quarantine, curfew and social distancing regulations in your area.</li>
+	        <li>Don't steal, don't damage property, don't litter, don't do anything illegal nor anything that would otherwise cause danger to yourself or others.</li>
+	        <li>All your data is anonymized.</li>
+	        <li>Nothing is shared with any third party services, period.</li>
+	    </div>
+
+	    <div id="fdbl">
+	    	<h1>
+	    		<div id="ios" style="display: none;"><a href="https://apps.apple.com/app/id1531706922">Install Fatumbot app &gt;&gt;&gt;</a><img src="as.png"/></div>
+	    		<div id="gps" style="display: none;"><a href="https://play.google.com/store/apps/details?id=com.fatumbot.app">Install Fatumbot app &gt;&gt;&gt;</a><img src="gp.png"/></div>
+	    		<br>
+		    	enjoy the same random quantum adventures - Randonautica origins
+	    	</h1>
+	    	<li>In-app purchases are not transferable but Fatumbot is free</li>
+		    <li>iOS purchase refund instructions <a href="https://support.apple.com/en-us/HT204084">here</a></li>
+		    <li>Google Play purchase refund instructions <a href="https://support.google.com/googleplay/answer/2479637?hl=en">here</a></li>
+		    <li>Randonautica will be back available again shortly</li>
+	    </div>
 
     	<div id="reload">
     		<br>
@@ -181,17 +191,23 @@
 				$('#results').hide();
 	            $('#buttons').hide();
 	            $('#finding').show();
+	            $('#gps').show();
 
     	        currentLocationCallback = function (latitude, longitude) {
                     gotGenzaichiCorubakku(latitude, longitude);
                 };
 		    	flutterChannel_getCurrentLocation.postMessage('');
 			} else {
+				if (src && src == "android") {
+		            $('#ios').show();
+				}
+
 	            if (navigator.geolocation) {
 					$('#terms').hide();
 					$('#results').hide();
 		            $('#buttons').hide();
 		            $('#finding').show();
+		            $('#ios').show();
 
 	                navigator.geolocation.getCurrentPosition(
 	                	function (location) {
