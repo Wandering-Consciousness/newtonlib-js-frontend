@@ -89,6 +89,15 @@
     </div>
   
     <script>
+    	var currentLocationCallback;
+
+    	function reset(msg) {
+    		toastr.error(msg);
+		    $('#finding').hide();
+		    $('#results').hide();
+		    $('#buttons').show();
+    	}
+
         function gp(pointType) {
         	var c = document.getElementById('agree');
             if (c.checked == false) {
@@ -96,86 +105,111 @@
                 return true
             }
 
-            if (navigator.geolocation) {
-            	function reset(msg) {
-            		toastr.error(msg);
-				    $('#finding').hide();
-				    $('#results').hide();
-				    $('#buttons').show();
-            	}
+            gotGenzaichiCorubakku = function (latitude, longitude) {
+	            $.ajax({
+			        url: "https://qrng.anu.edu.au/API/jsonI.php?length=500&type=hex16&size=520",
+			        type: "GET",
+			        success: function(result) {
+			        	var hex = "";
+			        	for (var i = 0; i < result.data.length; i++) {
+			        		hex += result.data[i];
+			        	}
+			        	var bytes = [];
+						for (var i = 0, len = hex.length; i < len; i+=2) {
+							bytes.push(parseInt(hex.substr(i,2),16));
+						}
+						var bytesArray = new Uint8Array(bytes);
 
+			            $.ajax({
+					        url: "https://gosteve.azurewebsites.net/api/attractors?t="+pointType+"&l1="+latitude+"&l2="+longitude,
+					        type: "POST",
+					        contentType: "application/octet-stream",
+					        timeout: 120000,
+					        processData: false,
+					        data: bytesArray,
+					        success: function(result) {
+
+					        	$('#finding').hide();
+								$('#results').show();
+								$('#buttons').show();
+
+								try {
+									result = JSON.parse(result);
+									$('#type').text("Type: " + (pointType == 1 ? "Attractor" : "Void"));
+									$('#power').text("Power: " + result.p);
+									$('#zscore').text("Z-score: " + result.z);
+									$('#radius').text("Radius (m): " + result.r);
+
+						            $("#gmaps").text("Open Map");
+						            $("#gmaps").attr("href", "https://www.google.com/maps/place/" + result.l1 + "," + result.l2 + "/@" +  result.l1 + "," + result.l2 + ",14z");
+						        } catch (e) {
+						        	reset("Error with point data. Try again.");
+						        	console.log("Error", e.stack);
+								    console.log("Error", e.name);
+								    console.log("Error", e.message);
+						        }
+					        },
+					        error: function(XMLHttpRequest, textStatus, errorThrown) {
+					        	reset("Unable to currently find any points of interest. Try again.")
+					        }
+				        });
+					},
+			        error: function(XMLHttpRequest, textStatus, errorThrown) {
+			        	toastr.error("Error getting entropy. Try again later.")
+				    }
+			    });
+	        };
+
+        	function getUrlParameter(sParam) {
+		        var sPageURL = window.location.search.substring(1),
+		            sURLVariables = sPageURL.split('&'),
+		            sParameterName,
+		            i;
+
+		        for (i = 0; i < sURLVariables.length; i++) {
+		            sParameterName = sURLVariables[i].split('=');
+
+		            if (sParameterName[0] === sParam) {
+		                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+		            }
+		        }
+		    };
+			let src = getUrlParameter('src');
+
+			if (src && src == "android") {
 				$('#terms').hide();
 				$('#results').hide();
 	            $('#buttons').hide();
 	            $('#finding').show();
 
-                navigator.geolocation.getCurrentPosition(
-			        function (location) {
-			            $.ajax({
-					        url: "https://qrng.anu.edu.au/API/jsonI.php?length=500&type=hex16&size=520",
-					        type: "GET",
-					        success: function(result) {
-					        	var hex = "";
-					        	for (var i = 0; i < result.data.length; i++) {
-					        		hex += result.data[i];
-					        	}
-					        	var bytes = [];
-								for (var i = 0, len = hex.length; i < len; i+=2) {
-									bytes.push(parseInt(hex.substr(i,2),16));
-								}
-								var bytesArray = new Uint8Array(bytes);
+    	        currentLocationCallback = function (latitude, longitude) {
+                    gotGenzaichiCorubakku(latitude, longitude);
+                };
+		    	flutterChannel_getCurrentLocation.postMessage('');
+			} else {
+	            if (navigator.geolocation) {
+					$('#terms').hide();
+					$('#results').hide();
+		            $('#buttons').hide();
+		            $('#finding').show();
 
-					            $.ajax({
-							        url: "https://gosteve.azurewebsites.net/api/attractors?t="+pointType+"&l1="+location.coords.latitude+"&l2="+location.coords.longitude,
-							        type: "POST",
-							        contentType: "application/octet-stream",
-							        timeout: 120000,
-							        processData: false,
-							        data: bytesArray,
-							        success: function(result) {
-
-							        	$('#finding').hide();
-										$('#results').show();
-										$('#buttons').show();
-
-										try {
-											result = JSON.parse(result);
-											$('#type').text("Type: " + (pointType == 1 ? "Attractor" : "Void"));
-											$('#power').text("Power: " + result.p);
-											$('#zscore').text("Z-score: " + result.z);
-											$('#radius').text("Radius (m): " + result.r);
-
-								            $("#gmaps").text("Open Map");
-								            $("#gmaps").attr("href", "https://www.google.com/maps/place/" + result.l1 + "," + result.l2 + "/@" +  result.l1 + "," + result.l2 + ",14z");
-								        } catch (e) {
-								        	reset("Error with point data. Try again.");
-								        	console.log("Error", e.stack);
-										    console.log("Error", e.name);
-										    console.log("Error", e.message);
-								        }
-							        },
-							        error: function(XMLHttpRequest, textStatus, errorThrown) {
-							        	reset("Unable to currently find any points of interest. Try again.")
-							        }
-						        });
-							},
-					        error: function(XMLHttpRequest, textStatus, errorThrown) {
-					        	toastr.error("Error getting entropy. Try again later.")
-						    }
-					    });
-			        },
-			        function error(err) {
-			            reset('Error getting your current location. Try https://bot.fp2.dev inside a Chrome/Firefox/Safari browser.')
-			        },
-			        {
-			            "enableHighAccuracy": true,
-			            "timeout": 8000,
-			            "maximumAge": 5000,
-			        }
-		        );
-            } else {
-                toastr.error('Your device doesn\'t support GPS');
-            }
+	                navigator.geolocation.getCurrentPosition(
+	                	function (location) {
+	                		gotGenzaichiCorubakku(location.coords.latitude, location.coords.longitude);
+	                	},
+				        function error(err) {
+				            reset('Error getting your current location. Try open https://bot.randonauts.com inside a browser.')
+				        },
+				        {
+				            "enableHighAccuracy": true,
+				            "timeout": 8000,
+				            "maximumAge": 5000,
+				        }
+			        );
+	            } else {
+	                toastr.error('Your device doesn\'t support GPS');
+	            }
+		    }
         }
     </script>
 </body>
