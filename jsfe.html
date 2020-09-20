@@ -43,8 +43,6 @@
 </head>
 
 <body>
-    <h2 style="color: white;">Apologies for the recent downtime. While the system transitions through some upgrades you can use the Attractor and Void buttons below to get a point.</h2>
-
     <div style="background-color: black; color: white">
 		<center>
 
@@ -65,31 +63,28 @@
 	        	<button onclick="gp(1)">Get Attractor</button>
 	    		<button onclick="gp(2)">Get Void</button>
 	    	</div>
-    	</center>
+	    </center>
 
     	<div id="terms">
-	    	<p>By using this app you must agree to the terms below.</p>
+    		<center>
+    			<div id="fdbl">
+			    	<br>To look for anomalies install the Fatumbot app:<br>
+			    		<a href="https://apps.apple.com/app/id1531706922"><img id="ios" src="as.png"/></a>&nbsp;<a href="https://play.google.com/store/apps/details?id=com.fatumbot.app"><img id="gps" src="gp.png"/></a>
+			    		<br>
+			    	<li>In-app purchases are not transferable to Fatumbot but it's free</li>
+				    <li>Randonautica will be available again at a later date</li>
+			    </div>
+			</center>
+
+	    	<p>By using this site you must agree to the terms below.</p>
 	        <center><p><input id="agree" type="checkbox">Agree</p></center>
 
-	        <li>The app uses truly randomized coordinates. It is the user’s responsibility and wholly at their own risk should they decide to physically travel to coordinates in the real world.</li>
+	        <li>The site uses truly randomized coordinates. It is the user’s responsibility and wholly at their own risk should they decide to physically travel to coordinates in the real world.</li>
 	        <li>By using the app, you do so at your own risk. No-one other than yourself is liable for any positive or adverse affects or consequences from the use of this platform.</li>
 	        <li>Use common sense, do not put yourself or others in harm's way. Don't trespass. Obey all quarantine, curfew and social distancing regulations in your area.</li>
 	        <li>Don't steal, don't damage property, don't litter, don't do anything illegal nor anything that would otherwise cause danger to yourself or others.</li>
 	        <li>All your data is anonymized.</li>
 	        <li>Nothing is shared with any third party services, period.</li>
-	    </div>
-
-	    <div id="fdbl">
-	    	<h1>
-	    		<div id="ios" style="display: none;"><a href="https://apps.apple.com/app/id1531706922">Install Fatumbot app &gt;&gt;&gt;</a><img src="as.png"/></div>
-	    		<div id="gps" style="display: none;"><a href="https://play.google.com/store/apps/details?id=com.fatumbot.app">Install Fatumbot app &gt;&gt;&gt;</a><img src="gp.png"/></div>
-	    		<br>
-		    	enjoy the same random quantum adventures - Randonautica origins
-	    	</h1>
-	    	<li>In-app purchases are not transferable but Fatumbot is free</li>
-		    <li>iOS purchase refund instructions <a href="https://support.apple.com/en-us/HT204084">here</a></li>
-		    <li>Google Play purchase refund instructions <a href="https://support.google.com/googleplay/answer/2479637?hl=en">here</a></li>
-		    <li>Randonautica will be back available again shortly</li>
 	    </div>
 
     	<div id="reload">
@@ -107,6 +102,30 @@
 		    $('#results').hide();
 		    $('#buttons').show();
     	}
+
+
+    	function getUrlParameter(sParam) {
+	        var sPageURL = window.location.search.substring(1),
+	            sURLVariables = sPageURL.split('&'),
+	            sParameterName,
+	            i;
+
+	        for (i = 0; i < sURLVariables.length; i++) {
+	            sParameterName = sURLVariables[i].split('=');
+
+	            if (sParameterName[0] === sParam) {
+	                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+	            }
+	        }
+	    };
+		let src = getUrlParameter('src');
+
+		if (src && src == "android") {
+            $('#ios').hide();
+		} else if (src && src == "ios") {
+			$('#gps').hide();
+		}
+
 
         function gp(pointType) {
         	var c = document.getElementById('agree');
@@ -170,62 +189,29 @@
 			    });
 	        };
 
-        	function getUrlParameter(sParam) {
-		        var sPageURL = window.location.search.substring(1),
-		            sURLVariables = sPageURL.split('&'),
-		            sParameterName,
-		            i;
-
-		        for (i = 0; i < sURLVariables.length; i++) {
-		            sParameterName = sURLVariables[i].split('=');
-
-		            if (sParameterName[0] === sParam) {
-		                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-		            }
-		        }
-		    };
-			let src = getUrlParameter('src');
-
-			if (src && src == "android") {
+            if (navigator.geolocation) {
 				$('#terms').hide();
 				$('#results').hide();
 	            $('#buttons').hide();
 	            $('#finding').show();
-	            $('#gps').show();
+	            $('#ios').show();
 
-    	        currentLocationCallback = function (latitude, longitude) {
-                    gotGenzaichiCorubakku(latitude, longitude);
-                };
-		    	flutterChannel_getCurrentLocation.postMessage('');
-			} else {
-				if (src && src == "android") {
-		            $('#ios').show();
-				}
-
-	            if (navigator.geolocation) {
-					$('#terms').hide();
-					$('#results').hide();
-		            $('#buttons').hide();
-		            $('#finding').show();
-		            $('#ios').show();
-
-	                navigator.geolocation.getCurrentPosition(
-	                	function (location) {
-	                		gotGenzaichiCorubakku(location.coords.latitude, location.coords.longitude);
-	                	},
-				        function error(err) {
-				            reset('Error getting your current location. Try open https://bot.randonauts.com inside a browser.')
-				        },
-				        {
-				            "enableHighAccuracy": true,
-				            "timeout": 8000,
-				            "maximumAge": 5000,
-				        }
-			        );
-	            } else {
-	                toastr.error('Your device doesn\'t support GPS');
-	            }
-		    }
+                navigator.geolocation.getCurrentPosition(
+                	function (location) {
+                		gotGenzaichiCorubakku(location.coords.latitude, location.coords.longitude);
+                	},
+			        function error(err) {
+			            reset('Error getting your current location. Try open https://bot.randonauts.com inside a browser.')
+			        },
+			        {
+			            "enableHighAccuracy": true,
+			            "timeout": 8000,
+			            "maximumAge": 5000,
+			        }
+		        );
+            } else {
+                toastr.error('Your device doesn\'t support GPS');
+            }
         }
     </script>
 </body>
